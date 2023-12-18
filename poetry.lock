@@ -378,6 +378,20 @@ files = [
 referencing = ">=0.31.0"
 
 [[package]]
+name = "krippendorff"
+version = "0.6.1"
+description = "Fast computation of the Krippendorff's alpha measure."
+optional = false
+python-versions = ">=3.9,<3.13"
+files = [
+    {file = "krippendorff-0.6.1-py3-none-any.whl", hash = "sha256:d6de727ddcfefb44bda5a826e6b4738bf7a4b2c82d54885b43ab3ac69ff5d366"},
+    {file = "krippendorff-0.6.1.tar.gz", hash = "sha256:54ad907086b7a104353e6a7461dc7c12756fea51e0e6e75601a1d71647f3c47b"},
+]
+
+[package.dependencies]
+numpy = ">=1.21,<2.0"
+
+[[package]]
 name = "markdown-it-py"
 version = "3.0.0"
 description = "Python port of markdown-it. Markdown parsing, done right!"
@@ -1581,5 +1595,5 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 
 [metadata]
 lock-version = "2.0"
-python-versions = "^3.11"
-content-hash = "89164098a9e52e9eab74b968731c3f29dc6daa59daee0fb461e82d61ed831a8e"
+python-versions = ">=3.11,<3.13"
+content-hash = "7ad5934bd0038d3fc9933a94ae00fe075b69222718b2d0e869f2687490afcc55"
