@@ -1,5 +1,6 @@
 from typing import Callable
 
+from irrCAC.raw import CAC
 from pandera.typing import DataFrame
 import pandas as pd
 import streamlit as st
@@ -22,6 +23,13 @@ CATEGORICAL_PRE_FILTER = [SITUATION, SOZIALFORM, SKALA]
 KATEGORIE = "Kategorie"
 BEOBACHTUNG_ID = "Beobachtung ID"
 DIMENSION = [*CATEGORICAL_PRE_FILTER, KATEGORIE, BEOBACHTUNG_ID]
+
+RATING_CATEGORIES = [1, 2, 3, 4, 5, 6]
+
+
+def calculate_ac2(data: DataFrame):
+    cac = CAC(data[[TM, X]], weights="ordinal", categories=RATING_CATEGORIES)
+    return cac.gwet()
 
 
 def calculate_krippendorff(data: DataFrame) -> float:
@@ -66,11 +74,11 @@ result = []
 for analyze_by_value in data[analyze_by].unique():
     filtered_data = data[data[analyze_by] == analyze_by_value]
     try:
-        inter_rater_reliability = calculate_krippendorff(filtered_data)
+        inter_rater_reliability = calculate_ac2(filtered_data)
         result.append(
             {
                 analyze_by: analyze_by_value,
-                "inter_rater_reliability": inter_rater_reliability,
+                "inter_rater_reliability": inter_rater_reliability['est']['coefficient_value'],
             }
         )
     except Exception as e:

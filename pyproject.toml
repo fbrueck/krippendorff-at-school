@@ -6,12 +6,14 @@ authors = ["fabianbrueck <f.brueck@ampeersenergy.de>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.13"
-pandas = "^2.1.4"
+python = ">=3.10,<3.11"
+pandas = "<2.0.0"
 streamlit = "^1.29.0"
 pandera = "^0.18.0"
 openpyxl = "^3.1.2"
 krippendorff = "^0.6.1"
+irrcac = "^0.4.0"
+scipy = "<1.11.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.12.0"
