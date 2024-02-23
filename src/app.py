@@ -42,10 +42,10 @@ def calculate_krippendorff(data: DataFrame) -> float:
 
 
 def is_observation_id_gte(version: int) -> Callable:
-    return lambda x: int(x.split(".")[1]) >= version
+    return lambda x: int(str(x).split(".")[1]) >= version
 
 
-st.title("Krippendorff's Alpha in der Schule")
+st.title("OPTIS inter rater reliability")
 
 uploaded_file = st.file_uploader("Input Excel")
 if uploaded_file is not None:
