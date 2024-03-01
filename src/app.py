@@ -18,11 +18,12 @@ MEASURES = [RATER_1, RATER_2]
 SITUATION = "Situation"
 SOZIALFORM = "Sozialform"
 SKALA = "Skala"
-CATEGORICAL_PRE_FILTER = [SITUATION, SOZIALFORM, SKALA]
 
 KATEGORIE = "Kategorie"
 BEOBACHTUNG_ID = "Beobachtung ID"
-DIMENSION = [KATEGORIE, *CATEGORICAL_PRE_FILTER, BEOBACHTUNG_ID]
+
+CATEGORICAL_PRE_FILTER = [SITUATION, SOZIALFORM, SKALA]
+DIMENSION = [KATEGORIE, *CATEGORICAL_PRE_FILTER]
 
 RATING_CATEGORIES = [1, 2, 3, 4, 5, 6]
 
@@ -45,12 +46,58 @@ def is_observation_id_gte(version: int) -> Callable:
     return lambda x: int(str(x).split(".")[1]) >= version
 
 
+def analyze_by_one_dimension(data: DataFrame, dimension: str) -> list:
+    result = []
+    for analyze_by_value in data[dimension].unique():
+        filtered_data = data[data[dimension] == analyze_by_value]
+        try:
+            inter_rater_reliability = calculate_ac2(filtered_data)
+            result.append(
+                {
+                    dimension: analyze_by_value,
+                    "inter_rater_reliability": inter_rater_reliability["est"][
+                        "coefficient_value"
+                    ],
+                    "n": len(filtered_data)
+                }
+            )
+        except Exception as e:
+            st.error(f"Error for {analyze_by_value}: {e}")
+    return result
+
+
+
+def analyze_by_two_dimensions(data: DataFrame, dimension_1: str, dimension_2: str) -> list:
+    result = []
+    for analyze_by_value in data[[dimension_1, dimension_2]].drop_duplicates().itertuples(index=False):
+        filtered_data = data[
+            (data[dimension_1] == analyze_by_value[0])
+            & (data[dimension_2] == analyze_by_value[1])
+        ]
+        try:
+            inter_rater_reliability = calculate_ac2(filtered_data)
+            result.append(
+                {
+                    dimension_1: analyze_by_value[0],
+                    dimension_2: analyze_by_value[1],
+                    "inter_rater_reliability": inter_rater_reliability["est"][
+                        "coefficient_value"
+                    ],
+                    "n": len(filtered_data)
+                }
+            )
+        except Exception as e:
+            st.error(f"Error for {analyze_by_value}: {e}")
+    return result
+
+
+
 st.title("OPTIS inter rater reliability")
 
 DATASETS = INTER_RATER, INTER_RATER_TEST, INTRA_RATER = [
-    "OPTIS Interrater Pilotierung",
-    "OPTIS Interrater Pilotierung Testphase",
-    "OPTIS Intrarater Pilotierung",
+    "Inter-Rater Pilotierung",
+    "Inter-Rater Pilotierung Testphase",
+    "Intra-Rater Pilotierung",
 ]
 
 LABEL_TO_FILE = {
@@ -93,23 +140,13 @@ for dimension in CATEGORICAL_PRE_FILTER:
     )
     data = data[data[dimension].isin(analyze_by_value)]
 
-analyze_by = st.selectbox("Analysiere per", options=DIMENSION)
+analyze_by = st.multiselect("Analysiere per", options=DIMENSION, max_selections=2)
 
-result = []
-for analyze_by_value in data[analyze_by].unique():
-    filtered_data = data[data[analyze_by] == analyze_by_value]
-    try:
-        inter_rater_reliability = calculate_ac2(filtered_data)
-        result.append(
-            {
-                analyze_by: analyze_by_value,
-                "inter_rater_reliability": inter_rater_reliability["est"][
-                    "coefficient_value"
-                ],
-            }
-        )
-    except Exception as e:
-        st.error(f"Error for {analyze_by_value}: {e}")
-
-
-st.dataframe(result)
+if not analyze_by:
+    st.warning("Please select at least one dimension to analyze")
+elif len(analyze_by) == 2:
+    result = analyze_by_two_dimensions(data, *analyze_by)
+    st.dataframe(result)
+else:
+    result = analyze_by_one_dimension(data, analyze_by[0])
+    st.dataframe(result)
