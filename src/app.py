@@ -11,10 +11,6 @@ def read_input_excel(file_name: str) -> DataFrame:
     return pd.read_excel(file_name, sheet_name="data_transformed")
 
 
-def read_input_csv(file_name: str) -> DataFrame:
-    return pd.read_csv(file_name, sep=";")
-
-
 RATER_1 = "Rater_1"
 RATER_2 = "Rater_2"
 MEASURES = [RATER_1, RATER_2]
@@ -26,7 +22,7 @@ CATEGORICAL_PRE_FILTER = [SITUATION, SOZIALFORM, SKALA]
 
 KATEGORIE = "Kategorie"
 BEOBACHTUNG_ID = "Beobachtung ID"
-DIMENSION = [*CATEGORICAL_PRE_FILTER, KATEGORIE, BEOBACHTUNG_ID]
+DIMENSION = [KATEGORIE, *CATEGORICAL_PRE_FILTER, BEOBACHTUNG_ID]
 
 RATING_CATEGORIES = [1, 2, 3, 4, 5, 6]
 
@@ -51,19 +47,23 @@ def is_observation_id_gte(version: int) -> Callable:
 
 st.title("OPTIS inter rater reliability")
 
-DATASETS = INTER_RATER, INTER_RATER_TEST, INTRA_RATER = ["OPTIS Interrater Pilotierung", "OPTIS Interrater Pilotierung Testphase", "OPTIS Intrarater Pilotierung"]
+DATASETS = INTER_RATER, INTER_RATER_TEST, INTRA_RATER = [
+    "OPTIS Interrater Pilotierung",
+    "OPTIS Interrater Pilotierung Testphase",
+    "OPTIS Intrarater Pilotierung",
+]
 
 LABEL_TO_FILE = {
-    INTER_RATER: "OPTIS_Interrater_Pilotierung.csv",
-    INTER_RATER_TEST: "OPTIS_Interrater_Pilotierung_Testphase.csv",
-    INTRA_RATER: "OPTIS_Intrarater_Pilotierung.csv",
+    INTER_RATER: "OPTIS_Interrater_Pilotierung.xlsx",
+    INTER_RATER_TEST: "OPTIS_Interrater_Pilotierung_Testphase.xlsx",
+    INTRA_RATER: "OPTIS_Intrarater_Pilotierung.xlsx",
 }
 
 FILE_UPLOAD = "Excel datei hochladen"
 
 DATASET_OPTIONS = [*DATASETS, FILE_UPLOAD]
 
-data_set = st.selectbox("Data Set", options=DATASET_OPTIONS)
+data_set = st.selectbox("Daten Set auswählen", options=DATASET_OPTIONS)
 
 if data_set == FILE_UPLOAD:
     uploaded_file = st.file_uploader("Input Excel")
@@ -76,9 +76,9 @@ if data_set == FILE_UPLOAD:
     else:
         st.stop()
 else:
-    data = read_input_csv(f"data/{LABEL_TO_FILE[data_set]}")
+    data = read_input_excel(f"data/{LABEL_TO_FILE[data_set]}")
 
-st.subheader("Input data")
+st.subheader("Rohdaten")
 st.write(data)
 
 st.header("Analyse")
@@ -103,7 +103,9 @@ for analyze_by_value in data[analyze_by].unique():
         result.append(
             {
                 analyze_by: analyze_by_value,
-                "inter_rater_reliability": inter_rater_reliability['est']['coefficient_value'],
+                "inter_rater_reliability": inter_rater_reliability["est"][
+                    "coefficient_value"
+                ],
             }
         )
     except Exception as e:
