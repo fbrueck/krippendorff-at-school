@@ -7,13 +7,17 @@ import streamlit as st
 import krippendorff
 
 
-def read_input(file_name: str) -> DataFrame:
+def read_input_excel(file_name: str) -> DataFrame:
     return pd.read_excel(file_name, sheet_name="data_transformed")
 
 
-TM = "TM"
-X = "X"
-MEASURES = [TM, X]
+def read_input_csv(file_name: str) -> DataFrame:
+    return pd.read_csv(file_name, sep=";")
+
+
+RATER_1 = "Rater_1"
+RATER_2 = "Rater_2"
+MEASURES = [RATER_1, RATER_2]
 
 SITUATION = "Situation"
 SOZIALFORM = "Sozialform"
@@ -28,15 +32,15 @@ RATING_CATEGORIES = [1, 2, 3, 4, 5, 6]
 
 
 def calculate_ac2(data: DataFrame):
-    cac = CAC(data[[TM, X]], weights="ordinal", categories=RATING_CATEGORIES)
+    cac = CAC(data[[RATER_1, RATER_2]], weights="ordinal", categories=RATING_CATEGORIES)
     return cac.gwet()
 
 
 def calculate_krippendorff(data: DataFrame) -> float:
-    tm = data[TM].values
-    x = data[X].values
+    rater_1 = data[RATER_1].values
+    rater_2 = data[RATER_2].values
     result = krippendorff.alpha(
-        reliability_data=[tm, x], level_of_measurement="ordinal"
+        reliability_data=[rater_1, rater_2], level_of_measurement="ordinal"
     )
     return result
 
@@ -47,11 +51,32 @@ def is_observation_id_gte(version: int) -> Callable:
 
 st.title("OPTIS inter rater reliability")
 
-uploaded_file = st.file_uploader("Input Excel")
-if uploaded_file is not None:
-    data = read_input(uploaded_file)
+DATASETS = INTER_RATER, INTER_RATER_TEST, INTRA_RATER = ["OPTIS Interrater Pilotierung", "OPTIS Interrater Pilotierung Testphase", "OPTIS Intrarater Pilotierung"]
+
+LABEL_TO_FILE = {
+    INTER_RATER: "OPTIS_Interrater_Pilotierung.csv",
+    INTER_RATER_TEST: "OPTIS_Interrater_Pilotierung_Testphase.csv",
+    INTRA_RATER: "OPTIS_Intrarater_Pilotierung.csv",
+}
+
+FILE_UPLOAD = "Excel datei hochladen"
+
+DATASET_OPTIONS = [*DATASETS, FILE_UPLOAD]
+
+data_set = st.selectbox("Data Set", options=DATASET_OPTIONS)
+
+if data_set == FILE_UPLOAD:
+    uploaded_file = st.file_uploader("Input Excel")
+    if uploaded_file is not None:
+        try:
+            data = read_input_excel(uploaded_file)
+        except Exception as e:
+            st.error(f"Error reading file: {e}")
+            st.stop()
+    else:
+        st.stop()
 else:
-    st.stop()
+    data = read_input_csv(f"data/{LABEL_TO_FILE[data_set]}")
 
 st.subheader("Input data")
 st.write(data)
