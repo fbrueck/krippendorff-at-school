@@ -6,6 +6,69 @@ import pandas as pd
 import streamlit as st
 import krippendorff
 
+CATEGORIES = [
+    "DRAUßEN",
+    "LEISTUNG",
+    "LERNERO.",
+    "SICHERUNG",
+    "VERBINDEND",
+    "WIRKLICHKEIT",
+    "ÜBEN",
+]
+
+CATEGORY_TO_TEACHING_PRINCIPLE = {
+    "HANDLUNG": "Action orientation",
+    "ERFAHRUNG": "Experience based",
+    "GANZHEITLICH": "Holistic Approach",
+
+    "Competence orientation 1": "KOMPETENZ_1",
+    "Competence orientation 2": "KOMPETENZ_2",
+
+    "Motivation": "MOTIVIERUNG",
+    "Target orientation": "ZIEL",
+    "Process orientation": "PROZESS",
+    "Independence": "SELBSTSTÄNDIGKEIT",
+    "Learner orientation": "",  # TODO
+    "Participation": "PARTIZIPATION",
+    "Experiencing self - efficiency": "SELBSTWIRKSAMKEIT",
+    "Cooperatives Learning": "KOOPERATIV",
+    "Variety of methods": "METHODEN",
+    "Visualization": "VERANSCHAULICHUNG",
+    "Transparent performance expectations": "",  # TODO
+    "Intelligent practice": "",  # TODO
+    "Fuse of content": "",  # TODO
+
+    "Differentiation 1": "DIFFERENZIERUNG_1",
+    "Differentiation 2": "DIFFERENZIERUNG_2",
+
+    "Activate prior knowledge": "VORWISSEN",
+    "Interdisciplinary": "",  # TODO
+    "Authentic & problem based learning experiences": "",  # TODO
+
+    "Structure & clarity 1": "STRUKTUR_1",
+    "Structure & clarity 2": "STRUKTUR_2",
+
+    "Time utilization 1": "LERNZEIT_1",
+    "Time utilization 2": "LERNZEIT_2",
+
+    "Communication 1": "KOMMUNIKATION_1",
+    "Communication 2": "KOMMUNIKATION_2",
+    "Communication 3": "KOMMUNIKATION_3",
+
+    "Learning - friendly classroom climate 1": "KLIMA_1",
+    "Learning - friendly classroom climate 2": "KLIMA_2",
+    "Learning - friendly classroom climate 3": "KLIMA_3",
+    "Learning - friendly classroom climate 4": "KLIMA_4",
+    "Learning - friendly classroom climate 5": "KLIMA_5",
+
+    "learning environment 1": "LERNORT_1",
+    "learning environment 2": "LERNORT_2",
+    "learning environment 3": "LERNORT_3",
+
+    "Use of the learning environment": "",  # TODO
+
+}
+
 
 def read_input_excel(file_name: str) -> DataFrame:
     return pd.read_excel(file_name, sheet_name="data_transformed")
@@ -30,7 +93,7 @@ RATING_CATEGORIES = [1, 2, 3, 4, 5, 6]
 
 def calculate_ac2(data: DataFrame):
     cac = CAC(data[[RATER_1, RATER_2]], weights="ordinal", categories=RATING_CATEGORIES)
-    return cac.gwet()
+    return cac.bp()
 
 
 def calculate_krippendorff(data: DataFrame) -> float:
@@ -66,14 +129,13 @@ def analyze_by_one_dimension(data: DataFrame, dimension: str) -> list:
     return result
 
 
-
 def analyze_by_two_dimensions(data: DataFrame, dimension_1: str, dimension_2: str) -> list:
     result = []
     for analyze_by_value in data[[dimension_1, dimension_2]].drop_duplicates().itertuples(index=False):
         filtered_data = data[
             (data[dimension_1] == analyze_by_value[0])
             & (data[dimension_2] == analyze_by_value[1])
-        ]
+            ]
         try:
             inter_rater_reliability = calculate_ac2(filtered_data)
             result.append(
@@ -89,7 +151,6 @@ def analyze_by_two_dimensions(data: DataFrame, dimension_1: str, dimension_2: st
         except Exception as e:
             st.error(f"Error for {analyze_by_value}: {e}")
     return result
-
 
 
 st.title("OPTIS inter rater reliability")
