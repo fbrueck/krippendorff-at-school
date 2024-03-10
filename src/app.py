@@ -91,7 +91,7 @@ RATING_CATEGORIES = [1, 2, 3, 4, 5, 6]
 
 def calculate_ac2(data: DataFrame):
     cac = CAC(data[[RATER_1, RATER_2]], weights="ordinal", categories=RATING_CATEGORIES)
-    return cac.bp()
+    return cac.gwet()
 
 
 def calculate_krippendorff(data: DataFrame) -> float:
