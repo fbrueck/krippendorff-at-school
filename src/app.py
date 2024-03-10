@@ -201,13 +201,22 @@ for dimension in CATEGORICAL_PRE_FILTER:
     )
     data = data[data[dimension].isin(analyze_by_value)]
 
-analyze_by = st.multiselect("Analysiere per", options=DIMENSION, max_selections=2)
+analyze_by = st.selectbox("Analysiere per", options=DIMENSION)
 
-if not analyze_by:
-    st.warning("Please select at least one dimension to analyze")
-elif len(analyze_by) == 2:
-    result = analyze_by_two_dimensions(data, *analyze_by)
-    st.dataframe(result)
-else:
-    result = analyze_by_one_dimension(data, analyze_by[0])
-    st.dataframe(result)
+result = []
+for analyze_by_value in data[analyze_by].unique():
+    filtered_data = data[data[analyze_by] == analyze_by_value]
+    try:
+        inter_rater_reliability = calculate_ac2(filtered_data)
+        result.append(
+            {
+                analyze_by: analyze_by_value,
+                "inter_rater_reliability": inter_rater_reliability["est"][
+                    "coefficient_value"
+                ],
+            }
+        )
+    except Exception as e:
+        st.error(f"Error for {analyze_by_value}: {e}")
+
+st.dataframe(result)
