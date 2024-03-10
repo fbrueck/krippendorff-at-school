@@ -6,20 +6,10 @@ import pandas as pd
 import streamlit as st
 import krippendorff
 
-CATEGORIES = [
-    "DRAUßEN",
-    "LEISTUNG",
-    "LERNERO.",
-    "SICHERUNG",
-    "VERBINDEND",
-    "WIRKLICHKEIT",
-    "ÜBEN",
-]
-
-CATEGORY_TO_TEACHING_PRINCIPLE = {
-    "HANDLUNG": "Action orientation",
-    "ERFAHRUNG": "Experience based",
-    "GANZHEITLICH": "Holistic Approach",
+TEACHING_PRINCIPLE_TO_OBSERVATION_CATEGORY = {
+    "Action orientation": "HANDLUNG",
+    "Experience based": "ERFAHRUNG",
+    "Holistic Approach": "GANZHEITLICH",
 
     "Competence orientation 1": "KOMPETENZ_1",
     "Competence orientation 2": "KOMPETENZ_2",
@@ -28,22 +18,21 @@ CATEGORY_TO_TEACHING_PRINCIPLE = {
     "Target orientation": "ZIEL",
     "Process orientation": "PROZESS",
     "Independence": "SELBSTSTÄNDIGKEIT",
-    "Learner orientation": "",  # TODO
+    "Learner orientation": "LERNERO.",
     "Participation": "PARTIZIPATION",
     "Experiencing self - efficiency": "SELBSTWIRKSAMKEIT",
-    "Cooperatives Learning": "KOOPERATIV",
+    "Cooperative learning": "KOOPERATIV",
     "Variety of methods": "METHODEN",
     "Visualization": "VERANSCHAULICHUNG",
-    "Transparent performance expectations": "",  # TODO
-    "Intelligent practice": "",  # TODO
-    "Fuse of content": "",  # TODO
-
+    "Transparent performance expectations": "LEISTUNG",
+    "Intelligent practice": "ÜBEN",
+    "Fuse of content": "SICHERUNG",
     "Differentiation 1": "DIFFERENZIERUNG_1",
     "Differentiation 2": "DIFFERENZIERUNG_2",
 
     "Activate prior knowledge": "VORWISSEN",
-    "Interdisciplinary": "",  # TODO
-    "Authentic & problem based learning experiences": "",  # TODO
+    "Interdisciplinary": "VERBINDEND",
+    "Authentic & problem based learning experiences": "WIRKLICHKEIT",
 
     "Structure & clarity 1": "STRUKTUR_1",
     "Structure & clarity 2": "STRUKTUR_2",
@@ -65,9 +54,18 @@ CATEGORY_TO_TEACHING_PRINCIPLE = {
     "learning environment 2": "LERNORT_2",
     "learning environment 3": "LERNORT_3",
 
-    "Use of the learning environment": "",  # TODO
-
+    "Use of the learning environment": "DRAUßEN",
 }
+
+OBSERVATION_CATEGORY_TO_TEACHING_PRINCIPLE = {
+    v: k for k, v in TEACHING_PRINCIPLE_TO_OBSERVATION_CATEGORY.items()
+}
+
+
+def map_principles(mapping: dict) -> Callable:
+    def _map_principles(x):
+        return mapping.get(x, x)
+    return _map_principles
 
 
 def read_input_excel(file_name: str) -> DataFrame:
@@ -185,6 +183,8 @@ if data_set == FILE_UPLOAD:
         st.stop()
 else:
     data = read_input_excel(f"data/{LABEL_TO_FILE[data_set]}")
+
+data[KATEGORIE] = data[KATEGORIE].map(map_principles(OBSERVATION_CATEGORY_TO_TEACHING_PRINCIPLE))
 
 st.subheader("Rohdaten")
 st.write(data)
