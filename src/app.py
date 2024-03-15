@@ -1,6 +1,9 @@
+from dataclasses import dataclass
 from typing import Callable
 
+from irrCAC.benchmark import Benchmark
 from irrCAC.raw import CAC
+from numpy import nan
 from pandera.typing import DataFrame
 import pandas as pd
 import streamlit as st
@@ -89,9 +92,35 @@ DIMENSION = [KATEGORIE, *CATEGORICAL_PRE_FILTER]
 RATING_CATEGORIES = [1, 2, 3, 4, 5, 6]
 
 
-def calculate_ac2(data: DataFrame):
+def calculate_altman(coefficient: float, standard_error: float) -> str:
+    if coefficient == 1 and standard_error == 0:
+        return "Very Good"
+    CUT_OFF = 0.95
+    benchmark = Benchmark(coefficient, standard_error).altman()
+    for index, probability in enumerate(benchmark["CumProb"]):
+        if probability >= CUT_OFF:
+            return benchmark["Altman"][index]
+
+@dataclass
+class AC2Result:
+    coefficient: float
+    standard_error: float
+    altman: str
+    n: int
+
+
+def calculate_ac2(data: DataFrame) -> AC2Result:
     cac = CAC(data[[RATER_1, RATER_2]], weights="ordinal", categories=RATING_CATEGORIES)
-    return cac.gwet()
+    result = cac.gwet()
+    coefficient = result["est"]["coefficient_value"]
+    standard_error = result["est"]["se"]
+    altman = calculate_altman(coefficient, standard_error)
+    return AC2Result(
+        coefficient=coefficient,
+        standard_error=standard_error,
+        altman=altman,
+        n=len(data)
+    )
 
 
 def calculate_krippendorff(data: DataFrame) -> float:
@@ -187,9 +216,10 @@ for analyze_by_value in data[analyze_by].unique():
         result.append(
             {
                 analyze_by: analyze_by_value,
-                "inter_rater_reliability": inter_rater_reliability["est"][
-                    "coefficient_value"
-                ],
+                "n": len(filtered_data),
+                "coefficient": inter_rater_reliability.coefficient,
+                "standard_error": inter_rater_reliability.standard_error,
+                "altman": inter_rater_reliability.altman
             }
         )
     except Exception as e:
