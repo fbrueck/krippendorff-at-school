@@ -127,30 +127,6 @@ def analyze_by_one_dimension(data: DataFrame, dimension: str) -> list:
     return result
 
 
-def analyze_by_two_dimensions(data: DataFrame, dimension_1: str, dimension_2: str) -> list:
-    result = []
-    for analyze_by_value in data[[dimension_1, dimension_2]].drop_duplicates().itertuples(index=False):
-        filtered_data = data[
-            (data[dimension_1] == analyze_by_value[0])
-            & (data[dimension_2] == analyze_by_value[1])
-            ]
-        try:
-            inter_rater_reliability = calculate_ac2(filtered_data)
-            result.append(
-                {
-                    dimension_1: analyze_by_value[0],
-                    dimension_2: analyze_by_value[1],
-                    "inter_rater_reliability": inter_rater_reliability["est"][
-                        "coefficient_value"
-                    ],
-                    "n": len(filtered_data)
-                }
-            )
-        except Exception as e:
-            st.error(f"Error for {analyze_by_value}: {e}")
-    return result
-
-
 st.title("OPTIS inter rater reliability")
 
 DATASETS = INTER_RATER, INTER_RATER_TEST, INTRA_RATER = [
